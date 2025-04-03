@@ -1,0 +1,39 @@
+{
+  "name": "react-animated-transition",
+  "version": "1.1.1",
+  "description": "Animated add and remove children in React",
+  "keywords": [
+    "React",
+    "ReactJS",
+    "Transition",
+    "Animated remove",
+    "Animated list",
+    "Animated children",
+    "Animation on remove"
+  ],
+  "license": "MIT",
+  "author": "MaxmaxmaximusFree",
+  "type": "commonjs",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/module.js",
+  "types": "dist/types.d.ts",
+  "scripts": {
+    "build": "parcel build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.0"
+  },
+  "devDependencies": {
+    "@parcel/bundler-library": "^2.14.4",
+    "@parcel/packager-ts": "^2.14.4",
+    "@parcel/transformer-typescript-types": "^2.14.4",
+    "@types/react": ">=19.1.0",
+    "parcel": "^2.14.4",
+    "prettier": "^3.5.3",
+    "react": ">=19.1.0",
+    "react-dom": ">=19.1.0",
+    "typescript": "^5.8.2"
+  }
+}
