@@ -122,9 +122,9 @@ const Parent = () => {
   </div>
 }
 
-const Chat = ({ exit }) => {
+const Chat = ({ exit, ref }) => {
 
-  return <div className={`chat ${exit ? 'exit' : ''}`}>
+  return <div ref={ref} className={`chat ${exit ? 'exit' : ''}`}>
     Chat
   </div>
 }
