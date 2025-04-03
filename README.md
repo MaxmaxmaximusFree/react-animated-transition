@@ -47,7 +47,7 @@ const Parent = () => {
 .item {
     .item {
         /* for animate to height:auto */
-        interpolate-size: allow-keywords; 
+        interpolate-size: allow-keywords;
         transition: 1s;
 
         &.exit {
@@ -130,12 +130,22 @@ const Chat = ({ exit, ref }) => {
 }
 ```
 
+If you have already passed some ref prop from the top parent, it will be
+overwritten, and your outer component will think that the element is
+unmounted (although it will physically animate and be present in the DOM)
+
 This is done exactly so that you can decide for yourself how to display its
 disappearance animation inside the component, and also so that the
 component knows that it is in the disappearance animation, and possibly
 stops some of its processes, and did not respond to user actions for
 example.
 
+
+If you need to temporarily disable the component, just do it:
+
+```
+<AnimatedTransition disabled={true}></AnimatedTransition>
+```
 
 P.S.
 ---
