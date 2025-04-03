@@ -157,4 +157,4 @@ I'll make all this customizable through the AnimatedTransition settings,
 make different profiles, and a cool animation by default. 
 
 
-please like my repository, so i can brag to my girlfriend
+please star my repository so i can brag to my girlfriend
