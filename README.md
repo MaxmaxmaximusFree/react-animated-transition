@@ -143,7 +143,7 @@ example.
 
 If you need to temporarily disable the component, just do it:
 
-```
+```jsx
 <AnimatedTransition disabled={true}></AnimatedTransition>
 ```
 
