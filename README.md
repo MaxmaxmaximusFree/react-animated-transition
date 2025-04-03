@@ -156,4 +156,6 @@ element, its previous ordinal number, possibly about previous sizes. Or
 I'll make all this customizable through the AnimatedTransition settings,
 make different profiles, and a cool animation by default. 
 
-
+P.P.S.
+---
+please like my repository, so i can brag to my girlfriend
