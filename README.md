@@ -30,11 +30,15 @@ List example:
 const Parent = () => {
   const [items, setItems] = useState([1, 2, 3])
 
-  return <ul>
-    <AnimatedTransition exitClass="exit">
-      {items.map(item => <ul key={item} className="item">{item}</ul>)}
-    </AnimatedTransition>
-  </ul>
+  return (
+    <ul>
+      <AnimatedTransition exitClass="exit">
+        {items.map(item => (
+          <ul key={item} className="item">{item}</ul>
+        ))}
+      </AnimatedTransition>
+    </ul>
+  )
 }
 
 ```
