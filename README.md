@@ -19,8 +19,9 @@ task.
    element is removed from the DOM after `forceRemoveTimeout` is time.
 
 This allows you to create animated transitions between pages, animatedly
-remove list items, animatedly switch items from one to another, etc. For
-the entry animation, use css `@starting-style { }`.
+remove list items, animatedly switch items from one to another, etc.
+
+For the entry animation, use css `@starting-style { }`.
 
 List example:
 ---
@@ -41,7 +42,8 @@ const Parent = () => {
 ```css
 .item {
     .item {
-        interpolate-size: allow-keywords; /* for animate to height:auto */
+        /* for animate to height:auto */
+        interpolate-size: allow-keywords; 
         transition: 1s;
 
         &.exit {
