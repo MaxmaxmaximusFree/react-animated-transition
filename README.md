@@ -141,7 +141,42 @@ If you have already passed some ref prop from the top parent, it will be
 overwritten, and your outer component will think that the element is
 unmounted (although it will physically animate and be present in the DOM)
 
-If you need to temporarily disable the component, just do it:
+If you don't like props, you can use context with `exitContext` prop:
+
+```jsx
+import { useExitContext } from 'react-animated-transition'
+
+const Parent = () => {
+  const [active, setActive] = useState(false)
+
+  return <div>
+    <AnimatedTransition exitContext={{ exit: true }}>
+      {active && <Chat />}
+    </AnimatedTransition>
+  </div>
+}
+
+const Chat = () => {
+  const [{exit}, ref] = useExitContext()
+
+  return <div ref={ref} className={`chat ${exit ? 'exit' : ''}`}>
+    Chat
+  </div>
+}
+
+// For rendered components both values of tuple will be undefined, 
+// so you can set a default value so that destructuring doesn't break:
+const Chat = () => {
+  const [{exit}, ref] = useExitContext({exit: false})
+
+  return <div ref={ref} className={`chat ${exit ? 'exit' : ''}`}>
+    Chat
+  </div>
+}
+```
+
+
+If you need to temporarily disable the component, do it:
 
 ```jsx
 <AnimatedTransition disabled={true}></AnimatedTransition>

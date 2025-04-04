@@ -3,9 +3,11 @@
 import {
   Children,
   cloneElement,
+  createContext,
   ReactElement,
   ReactNode,
   useCallback,
+  useContext,
   useReducer,
   useRef,
 } from 'react'
@@ -14,35 +16,55 @@ type PersistProps = {
   className?: string
 } & Record<string, any>
 
-type Node = ReactElement<PersistProps>
+type Node = Omit<ReactElement<PersistProps>, 'key'> & {
+  key: string
+}
+
+export type ExitAnimationDetectorRef = (
+  element: HTMLElement | null
+) => void
 
 type Persist = {
   node: Node
+  key: string
+  ref: ExitAnimationDetectorRef
   prevKey: string | null
   nextKey: string | null
 }
 
-export interface TransitionProps {
+type ExitContextValueT<T = any> = T
+
+type ExitContextTuple<T = any> = [
+  ExitContextValueT<T>,
+  ExitAnimationDetectorRef | undefined,
+]
+
+export interface AnimatedTransitionProps {
   children: any // FIX
   exitProps?: PersistProps
+  exitContext?: ExitContextValueT
   exitClass?: string
   // если никакая анимация не началась, удалить элемент через:
   forceRemoveTimeout?: number
   disabled?: boolean
 }
 
+/////////////////////////////////////////////////////////////////////
+// AnimatedTransition
+/////////////////////////////////////////////////////////////////////
 export const AnimatedTransition = ({
   exitProps = {},
+  exitContext,
   exitClass,
   forceRemoveTimeout = 300,
   disabled = false,
   ...props
-}: TransitionProps): ReactNode => {
+}: AnimatedTransitionProps): ReactNode => {
   // FIX: баг тайпскрипта, он не может нормально принимать ситуации
   // типа вот таких:
-  // <AnimatedTransition exitProps={{ exit: true }}>
+  // <Transition exitProps={{ exit: true }}>
   //    {models.map((model) => children(model as ModelT))}
-  // </AnimatedTransition>
+  // </Transition>
   // По этому допускаем children:any а потом конвертируем в нормальный тип
   const children = Children.toArray(props.children) as Node[]
 
@@ -54,18 +76,15 @@ export const AnimatedTransition = ({
   const prevPersists = useRef<Persist[]>([])
   const [, forceUpdate] = useReducer((x) => x + 1, 0)
 
-  const removePersist = useCallback(
-    (persist: Persist) => {
-      prevRender.current = prevRender.current.filter(
-        (node) => node.key !== persist.node.key
-      )
-      prevPersists.current = prevPersists.current.filter(
-        (prevPersist) => prevPersist.node.key !== persist.node.key
-      )
-      forceUpdate()
-    },
-    [forceUpdate]
-  )
+  const removePersist = useCallback((persist: Persist) => {
+    prevRender.current = prevRender.current.filter(
+      (node) => node.key !== persist.key
+    )
+    prevPersists.current = prevPersists.current.filter(
+      (prevPersist) => prevPersist.key !== persist.key
+    )
+    forceUpdate()
+  }, [])
 
   if (disabled) {
     return children
@@ -84,7 +103,8 @@ export const AnimatedTransition = ({
 
   prevPersists.current = persists
   prevRender.current = newRender
-  return newRender
+
+  return wrapEveryNodeWithExitContext(newRender, persists, exitContext)
 }
 
 const addPersists = (children: Node[], persists: Persist[]) => {
@@ -180,7 +200,7 @@ const getPersists = (
   const childrenKeys = children.map((node) => node.key)
 
   const persistByKey = new Map(
-    prevPersists.map((persist) => [persist.node.key, persist])
+    prevPersists.map((persist) => [persist.key, persist])
   )
 
   const persists: Persist[] = []
@@ -224,15 +244,30 @@ const createPersist = (
   forceRemoveTimeout: number,
   removePersist: (persist: Persist) => void
 ): Persist => {
-  const animationEndHandlerRef = createAnimationEndHandlerRef(() => {
+  const ref = createAnimationEndHandlerRef(() => {
     removePersist(persist)
   }, forceRemoveTimeout)
 
+  exitProps.ref = ref
+
+  const persist = {
+    node: cloneNodeWithExitProps(node, exitProps),
+    ref: ref,
+    key: node.key!,
+    prevKey: prevKey,
+    nextKey: nextKey,
+  }
+
+  return persist
+}
+
+const cloneNodeWithExitProps = (
+  node: Node,
+  exitProps: PersistProps
+): Node => {
   // Рефы можно не мерджить, так как если элемент удалился из
   // родительского элемента, то ему в данный момент явно не передается
   // ни какой ref
-  exitProps.ref = animationEndHandlerRef
-
   if (exitProps.className && node.props.className) {
     exitProps.className = mergeClassNames(
       node.props.className,
@@ -240,13 +275,19 @@ const createPersist = (
     )
   }
 
-  const persist = {
-    node: cloneElement(node, exitProps),
-    prevKey: prevKey,
-    nextKey: nextKey,
-  }
+  return cloneElement(node, exitProps) as Node
+}
 
-  return persist
+const wrapNodeWithExitContext = (
+  node: Node,
+  exitContextValue: ExitContextValueT,
+  ref: ExitAnimationDetectorRef | undefined
+): Node => {
+  return (
+    <ExitContext.Provider key={node.key} value={[exitContextValue, ref]}>
+      {node}
+    </ExitContext.Provider>
+  ) as Node
 }
 
 const createAnimationEndHandlerRef = (
@@ -300,6 +341,36 @@ const createAnimationEndHandlerRef = (
 
     prevElem = element
   }
+}
+
+export const ExitContext = createContext<ExitContextTuple>([
+  undefined,
+  undefined,
+])
+
+export const useExitContext = <T extends any>(
+  defaultValue: T = undefined as T
+): ExitContextTuple<T> => {
+  const [contextValue, ref] = useContext<ExitContextTuple<T>>(ExitContext)
+  return [contextValue ?? defaultValue, ref]
+}
+
+const wrapEveryNodeWithExitContext = (
+  children: Node[],
+  persists: Persist[],
+  exitContextValue: ExitContextValueT
+) => {
+  const persistByKey = new Map(
+    persists.map((persist) => [persist.key, persist])
+  )
+
+  return children.map((node) => {
+    if (persistByKey.has(node.key)) {
+      const persist = persistByKey.get(node.key)!
+      return wrapNodeWithExitContext(node, exitContextValue, persist.ref)
+    }
+    return wrapNodeWithExitContext(node, undefined, undefined)
+  })
 }
 
 const mergeClassNames = (
