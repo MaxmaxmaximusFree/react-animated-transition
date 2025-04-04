@@ -34,7 +34,7 @@ const Parent = () => {
     <ul>
       <AnimatedTransition exitClass="exit">
         {items.map(item => (
-          <ul key={item} className="item">{item}</ul>
+          <li key={item} className="item">{item}</li>
         ))}
       </AnimatedTransition>
     </ul>
